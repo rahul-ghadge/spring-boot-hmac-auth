@@ -1,0 +1,14 @@
+
+
+hmac-verify:
+  header:
+    nonce: nonce
+    access-key: accesskey
+    authorization: authorization
+  server:
+    scheme: http
+    host: localhost
+
+  access-key: 8c2ea66e-abfc-4394-8adb-fa52890bdce3
+  secret-key: 982064c6-c265-11ed-afa1-0242ac120002
+  expires: 600    # seconds
