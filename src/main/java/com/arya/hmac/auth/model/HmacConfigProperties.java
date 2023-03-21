@@ -6,11 +6,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HmacConfig {
+public class HmacConfigProperties {
     private CredentialsProvider provider;
     private String headerOfNonce;
     private String headerOfAccessKey;
     private String headerOfAuthorization;
-    private String serverScheme;
-    private String serverHost;
 }

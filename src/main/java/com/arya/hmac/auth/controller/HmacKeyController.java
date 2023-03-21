@@ -6,12 +6,16 @@ import com.arya.hmac.auth.config.properties.HmacProperties;
 import com.arya.hmac.auth.model.PlainText;
 import com.arya.hmac.auth.model.SuperHero;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +29,7 @@ import java.util.Objects;
 
 @Slf4j
 @RestController
-@RequestMapping("/hmac-key")
+@RequestMapping("/hmac-key/super-heroes")
 public class HmacKeyController {
 
     @Autowired
@@ -34,67 +38,63 @@ public class HmacKeyController {
     private static final String algorithm = "HmacSHA256";
 
 
-    @GetMapping("/super-heroes/{id}")
-    public ResponseEntity<?> keyForFindById(HttpServletRequest httpServletRequest, Integer id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(HttpServletRequest httpServletRequest) throws IOException {
+        Map<String, Object> response = getHmacAuthToken(httpServletRequest, Thread.currentThread().getStackTrace()[1].getMethodName());
+        return ResponseEntity.ok(response);
+    }
 
+
+    @GetMapping
+    public ResponseEntity<?> findAll(HttpServletRequest httpServletRequest) throws IOException {
+        Map<String, Object> response = getHmacAuthToken(httpServletRequest, Thread.currentThread().getStackTrace()[1].getMethodName());
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping
+    public ResponseEntity<?> save(HttpServletRequest httpServletRequest) throws IOException {
+        Map<String, Object> response = getHmacAuthToken(httpServletRequest, Thread.currentThread().getStackTrace()[1].getMethodName());
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(HttpServletRequest httpServletRequest) throws IOException {
+        Map<String, Object> response = getHmacAuthToken(httpServletRequest, Thread.currentThread().getStackTrace()[1].getMethodName());
+        return ResponseEntity.ok(response);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(HttpServletRequest httpServletRequest) throws IOException {
+        Map<String, Object> response = getHmacAuthToken(httpServletRequest, Thread.currentThread().getStackTrace()[1].getMethodName());
+        return ResponseEntity.ok(response);
+    }
+
+
+    @NotNull
+    private Map<String, Object> getHmacAuthToken(HttpServletRequest httpServletRequest, String method) throws IOException {
         Map<String, Object> response = new HashMap<>();
         String nonce = String.valueOf(System.currentTimeMillis());
         String secretKey = properties.getSecretKey();
 
-        PlainText plainText = getPlainText(httpServletRequest, nonce, "", "", "");
+        String query = StringUtils.isBlank(httpServletRequest.getQueryString())
+                ? "" : "?" + httpServletRequest.getQueryString();
+
+        String contentType = Objects.isNull(httpServletRequest.getContentType())
+                ? "" : httpServletRequest.getContentType();
+
+        PlainText plainText = getPlainText(httpServletRequest, nonce, query, contentType, HmacHelper.getBody(httpServletRequest));
         log.info("Plain Test request: {}", plainText);
         String authorization = getAuthorizationToken(secretKey, plainText);
 
         response.put("authorization", authorization);
         response.put("nonce", nonce);
 
-        log.info("Returning success response for FindById: {}", response);
-
-        return ResponseEntity.ok(response);
+        log.info("Returning success response for {}: {}", method, response);
+        return response;
     }
-
-
-    @GetMapping("/super-heroes")
-    public ResponseEntity<?> keyForFindAll(HttpServletRequest httpServletRequest) {
-
-        Map<String, Object> response = new HashMap<>();
-        String nonce = String.valueOf(System.currentTimeMillis());
-        String secretKey = properties.getSecretKey();
-
-        PlainText plainText = getPlainText(httpServletRequest, nonce, "", "", "");
-        log.info("Plain Test request: {}", plainText);
-        String authorization = getAuthorizationToken(secretKey, plainText);
-
-        response.put("authorization", authorization);
-        response.put("nonce", nonce);
-
-        log.info("Returning success response for FindAll: {}", response);
-
-        return ResponseEntity.ok(response);
-    }
-
-
-
-    @PostMapping("/super-heroes")
-    public ResponseEntity<?> keyForSave(HttpServletRequest httpServletRequest, @RequestBody SuperHero superHero) throws IOException {
-
-        Map<String, Object> response = new HashMap<>();
-        String nonce = String.valueOf(System.currentTimeMillis());
-        String secretKey = properties.getSecretKey();
-
-        PlainText plainText = getPlainText(httpServletRequest, nonce, "", "application/json", HmacHelper.getBody(httpServletRequest));
-        log.info("Plain Test request: {}", plainText);
-        String authorization = getAuthorizationToken(secretKey, plainText);
-
-        response.put("authorization", authorization);
-        response.put("nonce", nonce);
-
-        log.info("Returning success response for Save: {}", response);
-
-        return ResponseEntity.ok(response);
-    }
-
-
 
 
     @NotNull
@@ -120,8 +120,8 @@ public class HmacKeyController {
 
         return PlainText.builder()
                 .method(httpServletRequest.getMethod().toUpperCase(Locale.ROOT))
-                .scheme("http")
-                .host("localhost")
+                .scheme(httpServletRequest.getScheme())
+                .host(httpServletRequest.getServerName())
                 .path(uri)
                 .query(query)
                 .contentType(contentTyp)

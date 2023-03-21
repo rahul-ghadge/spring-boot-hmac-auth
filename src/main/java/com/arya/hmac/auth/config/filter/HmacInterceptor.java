@@ -1,7 +1,8 @@
 package com.arya.hmac.auth.config.filter;
 
-import com.arya.hmac.auth.model.HmacConfig;
-import com.arya.hmac.auth.config.HmacVerifyHelper;
+import com.arya.hmac.auth.model.HmacConfigProperties;
+import com.arya.hmac.auth.config.HmacAuthHelper;
+import com.arya.hmac.auth.model.HmacResponse;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -12,9 +13,9 @@ import java.util.Objects;
 
 public class HmacInterceptor implements HandlerInterceptor {
 
-    private HmacConfig config;
+    private HmacConfigProperties config;
 
-    public HmacInterceptor(HmacConfig config) {
+    public HmacInterceptor(HmacConfigProperties config) {
         this.config = config;
     }
 
@@ -22,16 +23,16 @@ public class HmacInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        JSONPObject verifyResult = HmacVerifyHelper.verify(request, config);
-        if (verifyResult.getFunction().equals("200")) {
+        HmacResponse hmacResponse = HmacAuthHelper.verify(request, config);
+        if (hmacResponse.getStatusCode() == 200) {
             return true;
         }
 
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(Objects.nonNull(verifyResult.getFunction()) ? Integer.parseInt(verifyResult.getFunction()) : 500);
+        response.setStatus(hmacResponse.getStatusCode() == 0 ? 500 : hmacResponse.getStatusCode());
         PrintWriter writer = response.getWriter();
-        writer.append(verifyResult.getValue().toString());
+        writer.append(hmacResponse.getMessage());
 
         return false;
     }

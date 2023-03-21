@@ -25,7 +25,7 @@ public class HmacHelper {
             PlainText plainText = PlainText.builder()
                     .method(getRequest().getMethod())
                     .scheme(getServerScheme())
-                    .host(getServerHost())
+                    .host(getRequest().getServerName())
                     .contentType(getRequest().getContentType() == null ? "" : getRequest().getContentType())
                     .path(getRequest().getRequestURI())
                     .query(getQueryString())

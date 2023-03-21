@@ -7,11 +7,10 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 @Primary
-@ConfigurationProperties(prefix = "hmac-verify")
+@ConfigurationProperties(prefix = "hmac-auth")
 @Data
 public class HmacProperties {
     private Header header;
-    private Server server;
     private String accessKey;
     private String secretKey;
     private Integer expires;
@@ -21,12 +20,5 @@ public class HmacProperties {
         private String nonce;
         private String accessKey;
         private String authorization;
-    }
-
-    @Data
-    public static class Server {
-        private String scheme;
-        private String host;
-
     }
 }

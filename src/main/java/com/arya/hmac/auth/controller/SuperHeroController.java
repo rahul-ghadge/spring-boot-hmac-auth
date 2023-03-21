@@ -34,12 +34,7 @@ public class SuperHeroController {
     @PostMapping
     public ResponseEntity<?> save(@RequestBody SuperHero superHero) {
         SuperHero savedSuperHero = superHeroService.save(superHero);
-
-        URI uri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/{id}")
-                .buildAndExpand(savedSuperHero.getId())
-                .toUri();
-        return ResponseEntity.created(uri).body(savedSuperHero);
+        return ResponseEntity.ok().body(savedSuperHero);
     }
 
 
