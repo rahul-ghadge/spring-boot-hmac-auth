@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,11 +22,11 @@ public class CredentialsVerifier implements CredentialsProvider {
 
     @Override
     public Credential getCredential(String accessKey) {
-        if (StringUtils.isBlank(accessKey)) {
+        if (Strings.isBlank(accessKey)) {
             return null;
         }
         String secretKey = credentials.get(accessKey);
-        if (StringUtils.isBlank(secretKey)) {
+        if (Strings.isBlank(secretKey)) {
             return null;
         }
         return new CredentialImpl(accessKey, secretKey, new NonceCheckerForExpire(expire));

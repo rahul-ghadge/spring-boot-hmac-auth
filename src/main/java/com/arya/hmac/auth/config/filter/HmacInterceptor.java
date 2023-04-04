@@ -1,15 +1,13 @@
 package com.arya.hmac.auth.config.filter;
 
+import com.arya.hmac.auth.config.verifier.HmacAuthVerifier;
 import com.arya.hmac.auth.model.HmacConfigProperties;
-import com.arya.hmac.auth.config.HmacAuthHelper;
 import com.arya.hmac.auth.model.HmacResponse;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
-import java.util.Objects;
 
 public class HmacInterceptor implements HandlerInterceptor {
 
@@ -19,11 +17,10 @@ public class HmacInterceptor implements HandlerInterceptor {
         this.config = config;
     }
 
-    public boolean preHandle(HttpServletRequest request,
-                             HttpServletResponse response,
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
 
-        HmacResponse hmacResponse = HmacAuthHelper.verify(request, config);
+        HmacResponse hmacResponse = HmacAuthVerifier.verify(request, config);
         if (hmacResponse.getStatusCode() == 200) {
             return true;
         }

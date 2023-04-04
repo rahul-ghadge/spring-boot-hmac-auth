@@ -1,9 +1,12 @@
-package com.arya.hmac.auth.config;
+package com.arya.hmac.auth.config.verifier;
 
+import com.arya.hmac.auth.config.CredentialsProvider;
+import com.arya.hmac.auth.config.HmacHelper;
+import com.arya.hmac.auth.config.HmacSignature;
 import com.arya.hmac.auth.model.HmacConfigProperties;
 import com.arya.hmac.auth.model.HmacResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -13,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class HmacAuthHelper {
+public class HmacAuthVerifier {
     public static final List<String> supportMethods =
             Collections.unmodifiableList(Arrays.asList("GET", "HEAD", "POST", "PUT", "DELETE"));
 
@@ -35,17 +38,17 @@ public class HmacAuthHelper {
         }
 
         String accessKey = request.getHeader(config.getHeaderOfAccessKey());
-        if (StringUtils.isBlank(accessKey)) {
+        if (Strings.isBlank(accessKey)) {
             return reply(401, request.getRequestURI() + " need " + config.getHeaderOfAccessKey() + " in header");
         }
 
         String authorization = request.getHeader(config.getHeaderOfAuthorization());
-        if (StringUtils.isBlank(authorization)) {
+        if (Strings.isBlank(authorization)) {
             return reply(401, request.getRequestURI() + " need " + config.getHeaderOfAuthorization() + " header");
         }
 
         String nonce = request.getHeader(config.getHeaderOfNonce());
-        if (StringUtils.isBlank(nonce)) {
+        if (Strings.isBlank(nonce)) {
             return reply(400, "Bad request: " + request.getRequestURI() + " need " + config.getHeaderOfNonce() + " header");
         }
 
@@ -61,7 +64,7 @@ public class HmacAuthHelper {
         }
 
         CredentialsProvider.Credential credential = config.getProvider().getCredential(accessKey);
-        if (credential == null || StringUtils.isBlank(credential.getSecretKey())) {
+        if (credential == null || Strings.isBlank(credential.getSecretKey())) {
             return reply(401, request.getRequestURI() + " header " + config.getHeaderOfAccessKey() + " value is invalidate");
         }
 
@@ -72,7 +75,7 @@ public class HmacAuthHelper {
         String algorithm = authArray[0].trim();
         String clientSignature = authArray[1].trim();
 
-        if (StringUtils.isBlank(algorithm)) {
+        if (Strings.isBlank(algorithm)) {
             return reply(401, request.getRequestURI() + " header " + config.getHeaderOfAuthorization() + " value is invalidate, lost algorithm");
         }
 
@@ -80,7 +83,7 @@ public class HmacAuthHelper {
             return reply(401, request.getRequestURI() + " header " + config.getHeaderOfAuthorization() + " value is invalidate, algorithm: " + algorithm + " not support");
         }
 
-        if (StringUtils.isBlank(clientSignature)) {
+        if (Strings.isBlank(clientSignature)) {
             return reply(401, request.getRequestURI() + " header " + config.getHeaderOfAuthorization() + " value is invalidate, lost signature");
         }
 
@@ -88,12 +91,12 @@ public class HmacAuthHelper {
         hmacSignature.setSecretKey(credential.getSecretKey());
         String serverSignature = hmacSignature.signature();
 
-        if (StringUtils.isBlank(serverSignature)) {
+        if (Strings.isBlank(serverSignature)) {
             return reply(500, request.getRequestURI() + " signature failure");
         }
 
         Map<String, String> sign = new HashMap();
-        sign.put("plainText", hmacSignature.getPlainText().toString());
+//        sign.put("hmacRequest", hmacSignature.getHmacRequest().toString());
         sign.put("signature", serverSignature);
         sign.put("client", clientSignature);
         log.info("sign: {}", sign);

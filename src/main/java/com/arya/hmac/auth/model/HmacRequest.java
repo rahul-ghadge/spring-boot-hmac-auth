@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class PlainText {
+public class HmacRequest {
     public static final String DELIMITER = "\n";
 
     private String method;

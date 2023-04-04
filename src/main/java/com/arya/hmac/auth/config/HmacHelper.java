@@ -1,9 +1,9 @@
 package com.arya.hmac.auth.config;
 
-import com.arya.hmac.auth.model.PlainText;
+import com.arya.hmac.auth.model.HmacRequest;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.util.StreamUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +13,6 @@ import java.io.UnsupportedEncodingException;
 @Slf4j
 @Builder
 public class HmacHelper {
-//    private static final String URL_DECODE_METHOD = "POST";
     private HttpServletRequest request;
     private String serverScheme;
     private String serverHost;
@@ -22,7 +21,7 @@ public class HmacHelper {
     public HmacSignature createHmacSignatureBuilder(String nonce) {
         try {
 
-            PlainText plainText = PlainText.builder()
+            HmacRequest hmacRequest = HmacRequest.builder()
                     .method(getRequest().getMethod())
                     .scheme(getServerScheme())
                     .host(getRequest().getServerName())
@@ -33,10 +32,10 @@ public class HmacHelper {
                     .nonce(nonce)
                     .build();
 
-            log.info("Plain Test Request: {}", plainText);
+            log.info("Hmac Request: {}", hmacRequest);
 
             return HmacSignature.builder()
-                    .plainText(plainText)
+                    .hmacRequest(hmacRequest)
                     .build();
         } catch (IOException e) {
             log.error("createBuilderFromRequest failure :{}", e.getMessage());
@@ -63,7 +62,7 @@ public class HmacHelper {
             return this.serverHost;
         }
         String host = getRequest().getHeader("host");
-        if (StringUtils.isNotBlank(host)) {
+        if (Strings.isNotBlank(host)) {
             host = host.split(":")[0];
         }
         return host;
@@ -80,7 +79,7 @@ public class HmacHelper {
      * @throws UnsupportedEncodingException
      */
     private String getQueryString() throws UnsupportedEncodingException {
-        return StringUtils.isBlank(getRequest().getQueryString())
+        return Strings.isBlank(getRequest().getQueryString())
                 ? ""
                 : "?" + getRequest().getQueryString();
     }
